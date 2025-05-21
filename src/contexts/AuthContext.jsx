@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { sendWelcomeEmail } from '../services/EmailNotificationService';
 
 // Create the authentication context
 const AuthContext = createContext();
@@ -46,6 +47,14 @@ export const AuthProvider = ({ children }) => {
         lastName,
         role,
         companyName,
+        emailPreferences: {
+          applicationUpdates: true,
+          jobRecommendations: true,
+          interviewInvitations: true,
+          deadlineReminders: true,
+          marketingEmails: false,
+          accountNotifications: true
+        },
         companySize: role === 'employer' ? 'small' : null,
         createdAt: new Date().toISOString()
       };
@@ -57,6 +66,11 @@ export const AuthProvider = ({ children }) => {
       // Set current user (but don't include password)
       setCurrentUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
+      
+      // Send welcome email
+      sendWelcomeEmail(newUser).then(() => {
+        console.log('Welcome email sent to', email);
+      });
       
       if (role === 'employer') {
         toast.success('Employer account created successfully!');
@@ -142,6 +156,48 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update user email preferences
+  const updateEmailPreferences = async (preferences) => {
+    try {
+      if (!currentUser) {
+        throw new Error('You must be logged in to update preferences');
+      }
+
+      setLoading(true);
+      
+      // Update user in "database"
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex(u => u.email === currentUser.email);
+      
+      if (userIndex === -1) {
+        throw new Error('User not found');
+      }
+      
+      // Update email preferences
+      const updatedUser = { 
+        ...users[userIndex], 
+        emailPreferences: { ...preferences } 
+      };
+      users[userIndex] = updatedUser;
+      
+      // Save to localStorage
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Update current user
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      setCurrentUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      
+      toast.success('Email preferences updated successfully!');
+      return userWithoutPassword;
+    } catch (error) {
+      toast.error(error.message || 'Failed to update preferences');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Logout the current user
   const logout = () => {
     setCurrentUser(null);
@@ -154,6 +210,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     register,
     convertToEmployer,
+    updateEmailPreferences,
     login,
     logout
   };

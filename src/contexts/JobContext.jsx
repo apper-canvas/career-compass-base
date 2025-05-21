@@ -1,6 +1,12 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
+import { 
+  sendJobApplicationConfirmation, 
+  sendApplicationStatusUpdate, 
+  sendInterviewInvitation, 
+  sendJobDeadlineReminder 
+} from '../services/EmailNotificationService';
 
 // Create the Job context
 const JobContext = createContext();
@@ -14,7 +20,9 @@ export const JobProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+  const [interviews, setInterviews] = useState([]);
+  const [deadlineNotifications, setDeadlineNotifications] = useState([]);
+  const { currentUser, loading: authLoading } = useAuth();
 
   // Initialize jobs from localStorage on mount
   useEffect(() => {
@@ -36,6 +44,18 @@ export const JobProvider = ({ children }) => {
       localStorage.setItem('applications', JSON.stringify([]));
     }
     
+    const storedInterviews = localStorage.getItem('interviews');
+    if (storedInterviews) {
+      setInterviews(JSON.parse(storedInterviews));
+    } else {
+      localStorage.setItem('interviews', JSON.stringify([]));
+    }
+    
+    const storedDeadlineNotifications = localStorage.getItem('deadlineNotifications');
+    if (storedDeadlineNotifications) {
+      setDeadlineNotifications(JSON.parse(storedDeadlineNotifications));
+    }
+    
     setLoading(false);
   }, []);
 
@@ -52,6 +72,72 @@ export const JobProvider = ({ children }) => {
       localStorage.setItem('applications', JSON.stringify(applications));
     }
   }, [applications, loading]);
+
+  // Save interviews to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('interviews', JSON.stringify(interviews));
+    }
+  }, [interviews, loading]);
+  
+  // Save deadline notifications to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('deadlineNotifications', JSON.stringify(deadlineNotifications));
+    }
+  }, [deadlineNotifications, loading]);
+  
+  // Check for upcoming deadlines daily and send reminders
+  useEffect(() => {
+    if (authLoading || loading || !currentUser) return;
+    
+    // Check if user has deadline reminders enabled
+    if (currentUser.emailPreferences?.deadlineReminders !== false) {
+      // Simulate checking for upcoming deadlines
+      const checkDeadlines = () => {
+        const today = new Date();
+        const upcomingDeadlines = applications.filter(app => {
+          if (!app.deadline) return false;
+          
+          const deadlineDate = new Date(app.deadline);
+          const diffTime = deadlineDate - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          // Notify 3 days before deadline
+          return diffDays > 0 && diffDays <= 3;
+        });
+        
+        // Send deadline notifications for applications that haven't been notified yet
+        upcomingDeadlines.forEach(app => {
+          const alreadyNotified = deadlineNotifications.some(
+            notification => notification.applicationId === app.id
+          );
+          
+          if (!alreadyNotified) {
+            // Send deadline reminder email
+            sendJobDeadlineReminder(currentUser, app).then(() => {
+              // Record that notification was sent
+              setDeadlineNotifications(prev => [
+                ...prev, 
+                { 
+                  applicationId: app.id, 
+                  sentDate: new Date().toISOString() 
+                }
+              ]);
+            });
+          }
+        });
+      };
+      
+      // Initial check
+      checkDeadlines();
+      
+      // Schedule daily check (for demo purposes we use shorter interval)
+      const intervalId = setInterval(checkDeadlines, 60000 * 5); // Every 5 minutes for demo
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [currentUser, applications, deadlineNotifications, loading, authLoading]);
 
   // Get all jobs
   const getAllJobs = () => {
@@ -92,6 +178,12 @@ export const JobProvider = ({ children }) => {
       };
       
       setJobs(prevJobs => [...prevJobs, newJob]);
+      
+      // If we had real users, we would notify candidates about new job postings
+      // For simulation purposes, we could log that notifications would be sent
+      console.log('New job posted notification would be sent to matching candidates');
+      
+      // Here we would trigger email notifications to relevant candidates
       
       toast.success('Job posted successfully!');
       return newJob;
@@ -177,6 +269,12 @@ export const JobProvider = ({ children }) => {
       
       setJobs(updatedJobs);
       
+      // Send emails to all applicants of this job about the deletion
+      const jobApplicants = applications.filter(app => app.jobId === jobId);
+      jobApplicants.forEach(application => {
+        sendApplicationStatusUpdate(application.userId, 'job_closed', application);
+      });
+      
       toast.success('Job deleted successfully!');
       return true;
     } catch (error) {
@@ -217,6 +315,193 @@ export const JobProvider = ({ children }) => {
       return { ...updatedJobs[jobIndex] };
     } catch (error) {
       toast.error(error.message || 'Failed to update job status');
+      throw error;
+    }
+  };
+  
+  // Apply for a job
+  const applyForJob = async (jobId, applicationData) => {
+    try {
+      if (!currentUser) {
+        throw new Error('You must be logged in to apply for jobs');
+      }
+
+      if (currentUser.role !== 'candidate') {
+        throw new Error('Only candidates can apply for jobs');
+      }
+
+      setLoading(true);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const job = getJobById(jobId);
+      
+      if (!job) {
+        throw new Error('Job not found');
+      }
+      
+      // Check if user has already applied
+      const existingApplication = applications.find(
+        app => app.jobId === jobId && app.userId === currentUser.id
+      );
+      
+      if (existingApplication) {
+        throw new Error('You have already applied for this job');
+      }
+      
+      // Create application
+      const newApplication = {
+        id: `app_${Date.now()}`,
+        jobId,
+        userId: currentUser.id,
+        jobTitle: job.title,
+        company: job.company,
+        status: 'Applied',
+        dateApplied: new Date().toISOString(),
+        ...applicationData,
+        deadline: applicationData.deadline || null
+      };
+      
+      setApplications(prev => [...prev, newApplication]);
+      
+      // Update job application count
+      const jobIndex = jobs.findIndex(j => j.id === jobId);
+      const updatedJobs = [...jobs];
+      updatedJobs[jobIndex] = { 
+        ...updatedJobs[jobIndex], 
+        applications: (updatedJobs[jobIndex].applications || 0) + 1 
+      };
+      
+      setJobs(updatedJobs);
+      
+      // Send confirmation email to candidate
+      if (currentUser.emailPreferences?.applicationUpdates !== false) {
+        sendJobApplicationConfirmation(currentUser, newApplication, job);
+      }
+      
+      toast.success('Application submitted successfully!');
+      return newApplication;
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit application');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Update application status (for employers)
+  const updateApplicationStatus = async (applicationId, newStatus, notes = '') => {
+    try {
+      if (!currentUser || currentUser.role !== 'employer') {
+        throw new Error('Only employers can update application status');
+      }
+
+      const applicationIndex = applications.findIndex(app => app.id === applicationId);
+      
+      if (applicationIndex === -1) {
+        throw new Error('Application not found');
+      }
+      
+      // Get the job for this application
+      const job = jobs.find(job => job.id === applications[applicationIndex].jobId);
+      
+      // Check if employer owns this job
+      if (job.employerId !== currentUser.id) {
+        throw new Error('You can only update applications for your own job listings');
+      }
+      
+      // Update application
+      const updatedApplications = [...applications];
+      updatedApplications[applicationIndex] = { 
+        ...updatedApplications[applicationIndex], 
+        status: newStatus,
+        statusUpdatedAt: new Date().toISOString(),
+        notes: notes || updatedApplications[applicationIndex].notes
+      };
+      
+      setApplications(updatedApplications);
+      
+      // Get user data for notification
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const applicantUser = users.find(user => user.id === updatedApplications[applicationIndex].userId);
+      
+      if (applicantUser && applicantUser.emailPreferences?.applicationUpdates !== false) {
+        // Send status update email
+        sendApplicationStatusUpdate(
+          applicantUser, 
+          newStatus, 
+          updatedApplications[applicationIndex], 
+          job,
+          notes
+        );
+      }
+      
+      toast.success(`Application status updated to ${newStatus}`);
+      return updatedApplications[applicationIndex];
+    } catch (error) {
+      toast.error(error.message || 'Failed to update application status');
+      throw error;
+    }
+  };
+  
+  // Schedule interview
+  const scheduleInterview = async (applicationId, interviewDetails) => {
+    try {
+      if (!currentUser || currentUser.role !== 'employer') {
+        throw new Error('Only employers can schedule interviews');
+      }
+
+      const application = applications.find(app => app.id === applicationId);
+      
+      if (!application) {
+        throw new Error('Application not found');
+      }
+      
+      // Get the job for this application
+      const job = jobs.find(job => job.id === application.jobId);
+      
+      // Check if employer owns this job
+      if (job.employerId !== currentUser.id) {
+        throw new Error('You can only schedule interviews for your own job listings');
+      }
+      
+      // Create interview
+      const newInterview = {
+        id: `interview_${Date.now()}`,
+        applicationId,
+        jobId: application.jobId,
+        candidateId: application.userId,
+        employerId: currentUser.id,
+        ...interviewDetails,
+        createdAt: new Date().toISOString()
+      };
+      
+      setInterviews(prev => [...prev, newInterview]);
+      
+      // Update application status to Interview
+      await updateApplicationStatus(applicationId, 'Interview', 
+        `Interview scheduled for ${new Date(interviewDetails.date).toLocaleDateString()} at ${interviewDetails.time}`
+      );
+      
+      // Get user data for notification
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const applicantUser = users.find(user => user.id === application.userId);
+      
+      if (applicantUser && applicantUser.emailPreferences?.interviewInvitations !== false) {
+        // Send interview invitation email
+        sendInterviewInvitation(
+          applicantUser,
+          newInterview,
+          job,
+          currentUser
+        );
+      }
+      
+      toast.success('Interview scheduled successfully!');
+      return newInterview;
+    } catch (error) {
+      toast.error(error.message || 'Failed to schedule interview');
       throw error;
     }
   };
@@ -296,6 +581,8 @@ export const JobProvider = ({ children }) => {
   const value = {
     jobs,
     loading,
+    applications,
+    interviews,
     getAllJobs,
     getJobsByEmployer,
     getJobById,
@@ -303,7 +590,10 @@ export const JobProvider = ({ children }) => {
     updateJob,
     deleteJob,
     toggleJobStatus,
-    applications
+    applyForJob,
+    updateApplicationStatus,
+    scheduleInterview
+    
   };
 
   return <JobContext.Provider value={value}>{children}</JobContext.Provider>;

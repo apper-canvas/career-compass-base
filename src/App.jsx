@@ -14,6 +14,7 @@ import Login from './pages/auth/Login';
 import JobDetail from './pages/JobDetail';
 import UserProfile from './pages/UserProfile';
 
+const EmailPreferences = lazy(() => import('./pages/settings/EmailPreferences'));
 // Lazy load the Register component
 const Register = lazy(() => import('./pages/auth/Register'));
 // Lazy load employer pages
@@ -163,6 +164,7 @@ const Navigation = () => {
                   )}
                   {currentUser.role === 'candidate' && (
                     <Link to="/my-applications" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">My Applications</Link>
+                    <Link to="/settings/email-preferences" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Email Preferences</Link>
                   )}
                   <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 border-t border-surface-200 dark:border-surface-700 mt-1 pt-1">Log Out</button>
                 </div>
@@ -333,6 +335,15 @@ function App() {
             <Route path="/my-applications" element={
               <ProtectedRoute>
                 <MyApplications />
+              </ProtectedRoute>
+            } />
+            
+            {/* Email Preferences */}
+            <Route path="/settings/email-preferences" element={
+              <ProtectedRoute>
+                <Suspense fallback={<div className="flex justify-center items-center h-64">Loading preferences...</div>}>
+                  <EmailPreferences />
+                </Suspense>
               </ProtectedRoute>
             } />
             
