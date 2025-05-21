@@ -180,7 +180,6 @@ const Navigation = () => {
                 Sign In
               </a>
             )}
-            </a>
           </motion.div>
         )}
       </div>
