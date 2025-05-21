@@ -1001,18 +1001,892 @@ const UserProfile = () => {
             
             {activeTab === "profile" && (
               <div>
-                <h2 className="text-2xl font-semibold mb-5">Personal Information</h2>
-                <p className="text-surface-600 dark:text-surface-400 mb-8">
-                  Manage your personal information and contact details.
-                </p>
-                <div className="space-y-6">
-                  {/* Profile form would go here */}
-                  <p className="text-center text-surface-500 italic py-8">
-                    Profile management features coming soon...
-                  </p>
-                </div>
+                <PersonalInfo user={mockUser} />
               </div>
             )}
+            
+            {activeTab === "resume" && <Resume />}
+            
+            {/* Settings Tab */}
+            {activeTab === "settings" && (
+              <div className="space-y-8">
+                <section>
+                  <h2 className="text-2xl font-semibold mb-5">Account Settings</h2>
+                  <p className="text-surface-600 dark:text-surface-400 mb-6">
+                    Manage your account settings, password, and email preferences.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    <div className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+                      <h3 className="font-medium text-lg mb-4">Change Password</h3>
+                      
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        toast.success("Password updated successfully!");
+                      }}>
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="current-password" className="block text-sm font-medium mb-1">
+                              Current Password
+                            </label>
+                            <input
+                              type="password"
+                              id="current-password"
+                              className="input-field"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <label htmlFor="new-password" className="block text-sm font-medium mb-1">
+                              New Password
+                            </label>
+                            <input
+                              type="password"
+                              id="new-password"
+                              className="input-field"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <label htmlFor="confirm-password" className="block text-sm font-medium mb-1">
+                              Confirm New Password
+                            </label>
+                            <input
+                              type="password"
+                              id="confirm-password"
+                              className="input-field"
+                              required
+                            />
+                          </div>
+                          
+                          <button type="submit" className="btn btn-primary mt-2">
+                            Update Password
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-5">
+                      <h3 className="font-medium text-lg mb-4">Email Preferences</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">Primary Email</h4>
+                            <p className="text-surface-600 dark:text-surface-400 text-sm">
+                              {mockUser.email}
+                            </p>
+                          </div>
+                          <button 
+                            onClick={() => toast.info("Email change functionality coming soon")}
+                            className="text-primary hover:text-primary-dark text-sm"
+                          >
+                            Change
+                          </button>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <label className="flex items-center">
+                            <input 
+                              type="checkbox" 
+                              defaultChecked={true}
+                              className="rounded border-surface-300 text-primary focus:ring-primary"
+                              onChange={() => toast.success("Email preference updated")}
+                            />
+                            <span className="ml-2 text-surface-700 dark:text-surface-300">
+                              Use this email for account notifications
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                
+                <section>
+                  <h3 className="text-xl font-semibold mb-4">Notification Preferences</h3>
+                  <p className="text-surface-600 dark:text-surface-400 mb-6">
+                    Choose how and when you receive notifications from CareerCompass.
+                  </p>
+                  
+                  <div className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 divide-y divide-surface-200 dark:divide-surface-700">
+                    {[
+                      { title: "Job Matches", description: "Get notified when new jobs match your criteria" },
+                      { title: "Application Updates", description: "Receive updates on your job applications" },
+                      { title: "Interview Reminders", description: "Get reminders before scheduled interviews" },
+                      { title: "Recruiter Messages", description: "Be notified when recruiters message you" },
+                      { title: "Account Updates", description: "Important notifications about your account" }
+                    ].map((item, index) => (
+                      <div key={index} className="p-4 flex items-start justify-between">
+                        <div>
+                          <h4 className="font-medium">{item.title}</h4>
+                          <p className="text-surface-600 dark:text-surface-400 text-sm">{item.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <label className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              defaultChecked={true}
+                              className="rounded border-surface-300 text-primary focus:ring-primary"
+                              onChange={() => toast.success(`${item.title} email notifications updated`)}
+                            />
+                            <span className="ml-2 text-sm">Email</span>
+                          </label>
+                          <label className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              defaultChecked={true}
+                              className="rounded border-surface-300 text-primary focus:ring-primary"
+                              onChange={() => toast.success(`${item.title} in-app notifications updated`)}
+                            />
+                            <span className="ml-2 text-sm">In-app</span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Personal Information Component
+const PersonalInfo = ({ user }) => {
+  const [formData, setFormData] = useState({
+    name: user.name || "",
+    title: user.title || "Software Developer",
+    email: user.email || "",
+    phone: user.phone || "",
+    location: user.location || "",
+    skills: user.skills || [],
+    preferences: user.preferences || {
+      jobTypes: [],
+      industries: [],
+      locations: []
+    },
+    socialProfiles: user.socialProfiles || {
+      linkedin: "",
+      github: "",
+      portfolio: ""
+    },
+    about: user.about || ""
+  });
+  const [newSkill, setNewSkill] = useState("");
+  const [errors, setErrors] = useState({});
+  const [editSection, setEditSection] = useState(null);
+
+  // Icons
+  const UserIcon = getIcon('user');
+  const BriefcaseIcon = getIcon('briefcase');
+  const MapPinIcon = getIcon('map-pin');
+  const PhoneIcon = getIcon('phone');
+  const MailIcon = getIcon('mail');
+  const LinkedinIcon = getIcon('linkedin');
+  const GithubIcon = getIcon('github');
+  const GlobeIcon = getIcon('globe');
+  const PlusIcon = getIcon('plus');
+  const XIcon = getIcon('x');
+  const CheckIcon = getIcon('check');
+  const EditIcon = getIcon('edit');
+
+  // Job types, industries and locations
+  const jobTypes = ["Full-time", "Part-time", "Contract", "Freelance", "Internship", "Remote"];
+  const industries = ["Technology", "Finance", "Healthcare", "Education", "Marketing", "Design", "Engineering", "Sales", "Customer Service", "Administrative"];
+  const locations = ["San Francisco, CA", "New York, NY", "Chicago, IL", "Boston, MA", "Austin, TX", "Seattle, WA", "Remote"];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleMultiSelectChange = (e, section, item) => {
+    const isChecked = e.target.checked;
+    
+    setFormData(prev => {
+      const currentItems = prev.preferences[section] || [];
+      
+      if (isChecked) {
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            [section]: [...currentItems, item]
+          }
+        };
+      } else {
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            [section]: currentItems.filter(i => i !== item)
+          }
+        };
+      }
+    });
+  };
+
+  const addSkill = () => {
+    if (!newSkill.trim()) {
+      toast.error("Please enter a skill");
+      return;
+    }
+    
+    if (formData.skills.includes(newSkill.trim())) {
+      toast.error("This skill already exists");
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      skills: [...prev.skills, newSkill.trim()]
+    }));
+    
+    setNewSkill("");
+    toast.success("Skill added successfully!");
+  };
+
+  const removeSkill = (skill) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skill)
+    }));
+    
+    toast.success("Skill removed successfully!");
+  };
+
+  const validate = (section) => {
+    const newErrors = {};
+    
+    if (section === 'basic') {
+      if (!formData.name.trim()) newErrors.name = "Name is required";
+      if (!formData.email.trim()) newErrors.email = "Email is required";
+      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
+      if (formData.phone && !/^(\+\d{1,3})?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(formData.phone)) {
+        newErrors.phone = "Phone number is invalid";
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const saveChanges = (section) => {
+    if (section === 'basic' && !validate('basic')) {
+      return;
+    }
+    
+    // In a real application, this would send the data to an API
+    toast.success(`${section === 'basic' ? 'Basic information' : 
+                    section === 'skills' ? 'Skills' : 
+                    section === 'preferences' ? 'Job preferences' : 
+                    section === 'social' ? 'Social profiles' : 
+                    'About information'} updated successfully!`);
+    
+    setEditSection(null);
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-5">Personal Information</h2>
+      <p className="text-surface-600 dark:text-surface-400 mb-6">
+        Manage your personal information and profile details.
+      </p>
+      
+      <div className="space-y-8">
+        {/* Basic Information Section */}
+        <section className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Basic Information</h3>
+            {editSection !== 'basic' && (
+              <button 
+                onClick={() => setEditSection('basic')}
+                className="p-2 rounded-lg text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          {editSection === 'basic' ? (
+            <form onSubmit={(e) => { e.preventDefault(); saveChanges('basic'); }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    required
+                  />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                </p>
+                </div>
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium mb-1">
+                    Professional Title
+                  </label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="e.g., Software Developer"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium mb-1">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    required
+                  />
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="(123) 456-7890"
+                  />
+                  {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                </div>
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="e.g., San Francisco, CA"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditSection(null)}
+                  className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
+              <div className="flex items-center">
+                <UserIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Name</h4>
+                  <p>{formData.name}</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <BriefcaseIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Title</h4>
+                  <p>{formData.title || "Not specified"}</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <MailIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Email</h4>
+                  <p>{formData.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <PhoneIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Phone</h4>
+                  <p>{formData.phone || "Not specified"}</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <MapPinIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Location</h4>
+                  <p>{formData.location || "Not specified"}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+        
+        {/* Skills Section */}
+        <section className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Skills</h3>
+            {editSection !== 'skills' && (
+              <button 
+                onClick={() => setEditSection('skills')}
+                className="p-2 rounded-lg text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          {editSection === 'skills' ? (
+            <div>
+              <div className="flex mb-4">
+                <input
+                  type="text"
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  className="input-field rounded-r-none flex-grow"
+                  placeholder="Add a skill (e.g., JavaScript)"
+                />
+                <button
+                  onClick={addSkill}
+                  className="btn btn-primary rounded-l-none px-3"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                {formData.skills.map((skill, index) => (
+                  <div 
+                    key={index}
+                    className="bg-surface-100 dark:bg-surface-700 px-3 py-1.5 rounded-full flex items-center"
+                  >
+                    <span className="mr-2">{skill}</span>
+                    <button
+                      onClick={() => removeSkill(skill)}
+                      className="text-surface-500 hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-200"
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                {formData.skills.length === 0 && (
+                  <p className="text-surface-500 dark:text-surface-400 italic">
+                    No skills added yet. Add skills to highlight your expertise.
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setEditSection(null)}
+                  className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveChanges('skills')}
+                  className="btn btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {formData.skills.map((skill, index) => (
+                <span
+                  key={index}
+                  className="bg-surface-100 dark:bg-surface-700 px-3 py-1 rounded-full text-surface-800 dark:text-surface-200"
+                >
+                  {skill}
+                </span>
+              ))}
+              {formData.skills.length === 0 && (
+                <p className="text-surface-500 dark:text-surface-400 italic">
+                  No skills added yet.
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+        
+        {/* Job Preferences Section */}
+        <section className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Job Preferences</h3>
+            {editSection !== 'preferences' && (
+              <button 
+                onClick={() => setEditSection('preferences')}
+                className="p-2 rounded-lg text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          {editSection === 'preferences' ? (
+            <div>
+              <div className="mb-6">
+                <h4 className="font-medium mb-2">Job Types</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {jobTypes.map((type, index) => (
+                    <label key={index} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.preferences.jobTypes.includes(type)}
+                        onChange={(e) => handleMultiSelectChange(e, 'jobTypes', type)}
+                        className="rounded border-surface-300 text-primary focus:ring-primary mr-2"
+                      />
+                      <span>{type}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <h4 className="font-medium mb-2">Industries</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {industries.map((industry, index) => (
+                    <label key={index} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.preferences.industries.includes(industry)}
+                        onChange={(e) => handleMultiSelectChange(e, 'industries', industry)}
+                        className="rounded border-surface-300 text-primary focus:ring-primary mr-2"
+                      />
+                      <span>{industry}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <h4 className="font-medium mb-2">Preferred Locations</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {locations.map((location, index) => (
+                    <label key={index} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.preferences.locations.includes(location)}
+                        onChange={(e) => handleMultiSelectChange(e, 'locations', location)}
+                        className="rounded border-surface-300 text-primary focus:ring-primary mr-2"
+                      />
+                      <span>{location}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setEditSection(null)}
+                  className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveChanges('preferences')}
+                  className="btn btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Job Types</h4>
+                <div className="flex flex-wrap gap-2">
+                  {formData.preferences.jobTypes.map((type, index) => (
+                    <span
+                      key={index}
+                      className="bg-surface-100 dark:bg-surface-700 px-3 py-1 rounded-full text-surface-800 dark:text-surface-200"
+                    >
+                      {type}
+                    </span>
+                  ))}
+                  {formData.preferences.jobTypes.length === 0 && (
+                    <p className="text-surface-500 dark:text-surface-400 italic">
+                      No job types specified.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Industries</h4>
+                <div className="flex flex-wrap gap-2">
+                  {formData.preferences.industries.map((industry, index) => (
+                    <span
+                      key={index}
+                      className="bg-surface-100 dark:bg-surface-700 px-3 py-1 rounded-full text-surface-800 dark:text-surface-200"
+                    >
+                      {industry}
+                    </span>
+                  ))}
+                  {formData.preferences.industries.length === 0 && (
+                    <p className="text-surface-500 dark:text-surface-400 italic">
+                      No industries specified.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Preferred Locations</h4>
+                <div className="flex flex-wrap gap-2">
+                  {formData.preferences.locations.map((location, index) => (
+                    <span
+                      key={index}
+                      className="bg-surface-100 dark:bg-surface-700 px-3 py-1 rounded-full text-surface-800 dark:text-surface-200"
+                    >
+                      {location}
+                    </span>
+                  ))}
+                  {formData.preferences.locations.length === 0 && (
+                    <p className="text-surface-500 dark:text-surface-400 italic">
+                      No locations specified.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+        
+        {/* Social Profiles Section */}
+        <section className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Social Profiles</h3>
+            {editSection !== 'social' && (
+              <button 
+                onClick={() => setEditSection('social')}
+                className="p-2 rounded-lg text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          {editSection === 'social' ? (
+            <div>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="socialProfiles.linkedin" className="block text-sm font-medium mb-1">
+                    LinkedIn Profile
+                  </label>
+                  <input
+                    type="url"
+                    id="socialProfiles.linkedin"
+                    name="socialProfiles.linkedin"
+                    value={formData.socialProfiles.linkedin}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="https://linkedin.com/in/your-profile"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="socialProfiles.github" className="block text-sm font-medium mb-1">
+                    GitHub Profile
+                  </label>
+                  <input
+                    type="url"
+                    id="socialProfiles.github"
+                    name="socialProfiles.github"
+                    value={formData.socialProfiles.github}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="https://github.com/your-username"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="socialProfiles.portfolio" className="block text-sm font-medium mb-1">
+                    Portfolio or Personal Website
+                  </label>
+                  <input
+                    type="url"
+                    id="socialProfiles.portfolio"
+                    name="socialProfiles.portfolio"
+                    value={formData.socialProfiles.portfolio}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="https://your-website.com"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setEditSection(null)}
+                  className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveChanges('social')}
+                  className="btn btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <LinkedinIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">LinkedIn</h4>
+                  {formData.socialProfiles.linkedin ? (
+                    <a href={formData.socialProfiles.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {formData.socialProfiles.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  ) : (
+                    <p className="text-surface-500 dark:text-surface-400 italic">Not specified</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <GithubIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">GitHub</h4>
+                  {formData.socialProfiles.github ? (
+                    <a href={formData.socialProfiles.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {formData.socialProfiles.github.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  ) : (
+                    <p className="text-surface-500 dark:text-surface-400 italic">Not specified</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <GlobeIcon className="h-5 w-5 text-surface-500 dark:text-surface-400 mr-3" />
+                <div>
+                  <h4 className="text-sm font-medium text-surface-500 dark:text-surface-400">Portfolio/Website</h4>
+                  {formData.socialProfiles.portfolio ? (
+                    <a href={formData.socialProfiles.portfolio} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {formData.socialProfiles.portfolio.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  ) : (
+                    <p className="text-surface-500 dark:text-surface-400 italic">Not specified</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+        
+        {/* About Section */}
+        <section className="bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">About</h3>
+            {editSection !== 'about' && (
+              <button 
+                onClick={() => setEditSection('about')}
+                className="p-2 rounded-lg text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          {editSection === 'about' ? (
+            <div>
+              <div>
+                <label htmlFor="about" className="block text-sm font-medium mb-1">
+                  Professional Summary
+                </label>
+                <textarea
+                  id="about"
+                  name="about"
+                  value={formData.about}
+                  onChange={handleInputChange}
+                  className="input-field min-h-[150px]"
+                  placeholder="Write a brief professional summary or bio..."
+                ></textarea>
+                <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
+                  Character count: {formData.about.length}/500 (recommended max)
+                </p>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setEditSection(null)}
+                  className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveChanges('about')}
+                  className="btn btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {formData.about ? (
+                <p className="text-surface-800 dark:text-surface-200 whitespace-pre-line">
+                  {formData.about}
+                </p>
+              ) : (
+                <p className="text-surface-500 dark:text-surface-400 italic">
+                  No professional summary or bio added yet. Add an about section to tell employers about yourself.
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
             
             {activeTab === "resume" && <Resume />}
             
