@@ -1348,6 +1348,7 @@ const PersonalInfo = ({ user }) => {
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 <div>
                 <div>
+                  <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
                   </label>
                   <input
@@ -1359,7 +1360,6 @@ const PersonalInfo = ({ user }) => {
                     className="input-field"
                     placeholder="e.g., Software Developer"
                   />
-                </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium mb-1">
                     Email Address <span className="text-red-500">*</span>
