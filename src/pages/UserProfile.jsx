@@ -1347,6 +1347,7 @@ const PersonalInfo = ({ user }) => {
                   />
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 <div>
+                <div>
                   <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
                   </label>
@@ -1361,8 +1362,8 @@ const PersonalInfo = ({ user }) => {
                   />
                 </div>
                 <div>
-                    Email Address <span className="text-red-500">*</span>
                   <label htmlFor="email" className="block text-sm font-medium mb-1">
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -1382,7 +1383,6 @@ const PersonalInfo = ({ user }) => {
                   <input
                     type="tel"
                     id="phone"
-                    name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="input-field"
@@ -1420,6 +1420,7 @@ const PersonalInfo = ({ user }) => {
                   Save Changes
                 </button>
               </div>
+            </div>
             </form>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
