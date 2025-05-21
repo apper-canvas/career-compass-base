@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { getIcon } from './utils/iconUtils';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import InterviewTips from './pages/InterviewTips';
 import UserProfile from './pages/UserProfile';
 
 // Navigation component
@@ -185,6 +186,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/interview-tips" element={<InterviewTips />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
