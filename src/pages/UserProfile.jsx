@@ -1347,7 +1347,6 @@ const PersonalInfo = ({ user }) => {
                   />
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 <div>
-                <div>
                   <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
                   </label>
@@ -1363,6 +1362,7 @@ const PersonalInfo = ({ user }) => {
                 </div>
                 <div>
                     Email Address <span className="text-red-500">*</span>
+                  <label htmlFor="email" className="block text-sm font-medium mb-1">
                   </label>
                   <input
                     type="email"
@@ -1406,7 +1406,8 @@ const PersonalInfo = ({ user }) => {
                 </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
-                <button type="button"
+                <button 
+                  type="button"
                   onClick={() => setEditSection(null)}
                   className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
                 >
