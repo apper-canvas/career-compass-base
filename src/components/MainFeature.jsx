@@ -381,3 +381,4 @@ const MainFeature = () => {
 };
 
 export default MainFeature;
+                            {React.createElement(getIcon(getStatusIcon(application.status)), { className: "h-5 w-5" })}

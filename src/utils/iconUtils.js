@@ -16,6 +16,11 @@ export const getIcon = (iconName) => {
   let componentName = '';
   if (iconName.includes('-')) {
     // Handle kebab-case with numbers (bar-chart-2 → BarChart2)
+  BellRing,
+  Bell,
+  AlertTriangle,
+  User,
+  Settings,
     componentName = iconName
       .split('-')
       .map(part => {
@@ -36,6 +41,11 @@ export const getIcon = (iconName) => {
   if (LucideIcons[componentName] && typeof LucideIcons[componentName] === 'function') {
     return LucideIcons[componentName];
   }
+  'bell-ring': BellRing,
+  'bell': Bell,
+  'alert-triangle': AlertTriangle,
+  'user': User,
+  'settings': Settings,
   
   // Step 4: Advanced retry - try various transformations if needed
   // Try removing spaces and underscores (user_circle → UserCircle)

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { getIcon } from './utils/iconUtils';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import UserProfile from './pages/UserProfile';
 
 // Navigation component
 const Navigation = () => {
@@ -40,6 +41,7 @@ const Navigation = () => {
   const SunIcon = getIcon('sun');
   const MoonIcon = getIcon('moon');
   const BriefcaseIcon = getIcon('briefcase');
+  const UserIcon = getIcon('user');
 
   return (
     <nav className="bg-white dark:bg-surface-800 shadow-sm sticky top-0 z-50">
@@ -78,6 +80,9 @@ const Navigation = () => {
             </a>
             <a href="/interview-tips" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
               Interview Tips
+            </a>
+            <a href="/profile" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
+              My Profile
             </a>
             <button 
               onClick={toggleTheme}
@@ -118,6 +123,13 @@ const Navigation = () => {
             >
               Interview Tips
             </a>
+            <a 
+              href="/profile"
+              className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              onClick={() => setIsOpen(false)}
+            >
+              My Profile <UserIcon className="inline h-4 w-4 ml-1" />
+            </a>
           </motion.div>
         )}
       </div>
@@ -143,6 +155,7 @@ const Footer = () => {
               <li><a href="/" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Find Jobs</a></li>
               <li><a href="/my-applications" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">My Applications</a></li>
               <li><a href="/interview-tips" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Interview Tips</a></li>
+              <li><a href="/profile" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">My Profile</a></li>
             </ul>
           </div>
           <div>
@@ -171,6 +184,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<UserProfile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
