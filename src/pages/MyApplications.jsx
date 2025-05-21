@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { getIcon } from '../utils/iconUtils';
+import { ToastContainer, toast } from 'react-toastify';
 
 // Mock application data
 const applicationData = [
@@ -52,7 +53,11 @@ const applicationData = [
 ];
 
 const MyApplications = () => {
+  const [applications, setApplications] = useState(applicationData);
   const [filter, setFilter] = useState('All');
+  const [viewApplication, setViewApplication] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  
   
   // Icons
   const BriefcaseIcon = getIcon('briefcase');
@@ -63,6 +68,7 @@ const MyApplications = () => {
   const FilterIcon = getIcon('filter');
   const ExternalLinkIcon = getIcon('external-link');
   const TrashIcon = getIcon('trash');
+  const XIcon = getIcon('x');
   
   // Status badge component
   const StatusBadge = ({ status }) => {
@@ -98,12 +104,44 @@ const MyApplications = () => {
     );
   };
   
+  // Handle delete application
+  const handleDelete = (id) => {
+    setApplications(applications.filter(app => app.id !== id));
+    setDeleteConfirmation(null);
+    toast.success("Application successfully deleted!");
+  };
+  
+  // Handle view application
+  const handleView = (application) => {
+    setViewApplication(application);
+  };
+  
+  // Show delete confirmation
+  const confirmDelete = (application) => {
+    setDeleteConfirmation(application);
+  };
+  
   // Filter applications based on selected filter
   const filteredApplications = filter === 'All' 
-    ? applicationData 
-    : applicationData.filter(app => app.status === filter);
+    ? applications 
+    : applications.filter(app => app.status === filter);
   
   return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
+      {/* Main Content */}
     <div className="container mx-auto px-4 md:px-6 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
@@ -165,10 +203,16 @@ const MyApplications = () => {
                 </div>
               </div>
               <div className="mt-4 md:mt-0 md:ml-6 flex space-x-2">
-                <button className="btn-outline text-sm py-1 px-3 flex items-center">
+                <button 
+                  onClick={() => handleView(application)} 
+                  className="btn-outline text-sm py-1 px-3 flex items-center"
+                >
                   <ExternalLinkIcon className="w-4 h-4 mr-1" /> View
                 </button>
-                <button className="text-red-500 border border-red-500 rounded-lg py-1 px-3 text-sm hover:bg-red-500 hover:text-white transition-colors duration-200 flex items-center">
+                <button 
+                  onClick={() => confirmDelete(application)} 
+                  className="text-red-500 border border-red-500 rounded-lg py-1 px-3 text-sm hover:bg-red-500 hover:text-white transition-colors duration-200 flex items-center"
+                >
                   <TrashIcon className="w-4 h-4 mr-1" /> Delete
                 </button>
               </div>
@@ -177,6 +221,62 @@ const MyApplications = () => {
         </div>
       )}
     </div>
+    
+    {/* View Application Modal */}
+    {viewApplication && (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="bg-white dark:bg-surface-800 rounded-lg p-6 m-4 max-w-2xl w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Application Details</h2>
+            <button 
+              onClick={() => setViewApplication(null)}
+              className="text-surface-500 hover:text-surface-700 dark:hover:text-surface-300"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <div className="text-4xl mr-4">{viewApplication.logo}</div>
+              <div>
+                <h3 className="text-lg font-medium">{viewApplication.position}</h3>
+                <p className="text-surface-600 dark:text-surface-400">{viewApplication.companyName}</p>
+              </div>
+            </div>
+            <StatusBadge status={viewApplication.status} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-surface-500 dark:text-surface-500">Location:</p>
+                <p>{viewApplication.location}</p>
+              </div>
+              <div>
+                <p className="text-sm text-surface-500 dark:text-surface-500">Date Applied:</p>
+                <p>{format(new Date(viewApplication.dateApplied), 'MMM d, yyyy')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* Delete Confirmation Modal */}
+    {deleteConfirmation && (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="bg-white dark:bg-surface-800 rounded-lg p-6 max-w-md w-full">
+          <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+          <p className="mb-6">Are you sure you want to delete your application for <strong>{deleteConfirmation.position}</strong> at <strong>{deleteConfirmation.companyName}</strong>?</p>
+          <div className="flex justify-end space-x-3">
+            <button onClick={() => setDeleteConfirmation(null)} className="btn-outline">
+              Cancel
+            </button>
+            <button onClick={() => handleDelete(deleteConfirmation.id)} className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
