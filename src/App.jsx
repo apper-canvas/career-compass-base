@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import InterviewTips from './pages/InterviewTips';
 import MyApplications from './pages/MyApplications';
+import JobDetail from './pages/JobDetail';
 import UserProfile from './pages/UserProfile';
 
 // Navigation component
@@ -189,6 +190,7 @@ function App() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/interview-tips" element={<InterviewTips />} />
           <Route path="/my-applications" element={<MyApplications />} />
+          <Route path="/job/:id" element={<JobDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
