@@ -1333,32 +1333,35 @@ const PersonalInfo = ({ user }) => {
             <form onSubmit={(e) => { e.preventDefault(); saveChanges('basic'); }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium mb-1">
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    required
-                  />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="input-field"
+                      required
+                    />
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                  </div>
+                </div>
                 <div>
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium mb-1">
-                    Professional Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    placeholder="e.g., Software Developer"
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium mb-1">
+                      Professional Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="input-field"
+                      placeholder="e.g., Software Developer"
                   />
                 </div>
                 <div>
@@ -1419,8 +1422,8 @@ const PersonalInfo = ({ user }) => {
                 >
                   Save Changes
                 </button>
-              </div>
-            </form>
+                </div>
+              </form>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
               <div className="flex items-center">
