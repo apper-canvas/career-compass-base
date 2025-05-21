@@ -1,18 +1,19 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
+import { useSelector } from 'react-redux';
 // Component to protect routes that require employer role
 const EmployerRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
+  const { user, isAuthenticated } = useSelector((state) => state.user);
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  if (!isAuthenticated) {
   if (loading) {
     return <div className="flex justify-center items-center h-96">Loading...</div>;
   }
 
-  // Redirect to login if not authenticated
-  if (!currentUser) {
+  // Check if the authenticated user is an employer
+  if (user.role !== 'employer') {
+    // User is not an employer, redirect to home
     return <Navigate to="/login" state={{ from: location, employerRequired: true }} replace />;
   }
 

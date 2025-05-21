@@ -1,18 +1,23 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, Link, useNavigate, } from 'react-router-dom';
+import React, { useState, useEffect, lazy, Suspense, createContext } from 'react';
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser, clearUser } from './store/userSlice';
 import { getIcon } from './utils/iconUtils';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import EmployerRoute from './components/EmployerRoute';
 import Home from './pages/Home';
+import Callback from './pages/Callback';
 import NotFound from './pages/NotFound';
 import InterviewTips from './pages/InterviewTips';
 import MyApplications from './pages/MyApplications';
 import Login from './pages/auth/Login';
 import JobDetail from './pages/JobDetail';
 import UserProfile from './pages/UserProfile';
+
+// Create auth context
+export const AuthContext = createContext(null);
 
 const EmailPreferences = lazy(() => import('./pages/settings/EmailPreferences'));
 // Lazy load the Register component
@@ -22,13 +27,16 @@ const EmployerDashboard = lazy(() => import('./pages/employer/Dashboard'));
 const PostJob = lazy(() => import('./pages/employer/PostJob'));
 const EditJob = lazy(() => import('./pages/employer/EditJob'));
 const ManageJobs = lazy(() => import('./pages/employer/ManageJobs'));
+const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 // Navigation component
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const { currentUser, logout } = useAuth();
+  const { user: currentUser } = useSelector((state) => state.user);
+  const { logout } = React.useContext(AuthContext);
+  
   const navigate = useNavigate();
 
   // Update theme based on user preference
@@ -65,7 +73,9 @@ const Navigation = () => {
   
   // Handle logout
   const handleLogout = () => {
-    setIsProfileOpen(false);
+    if(setIsProfileOpen) {
+      setIsProfileOpen(false);
+    }
     logout();
     navigate('/');
   };
@@ -311,8 +321,96 @@ const Footer = () => {
 };
 
 function App() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize ApperUI once when the app loads
+  useEffect(() => {
+    const { ApperClient, ApperUI } = window.ApperSDK;
+    const client = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+    
+    // Initialize but don't show login yet
+    ApperUI.setup(client, {
+      target: '#authentication',
+      clientId: import.meta.env.VITE_APPER_PROJECT_ID,
+      view: 'both',
+      onSuccess: function (user) {
+        setIsInitialized(true);
+        // CRITICAL: This exact currentPath logic must be preserved in all implementations
+        // DO NOT simplify or modify this pattern as it ensures proper redirection flow
+        let currentPath = window.location.pathname + window.location.search;
+        let redirectPath = new URLSearchParams(window.location.search).get('redirect');
+        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup') || currentPath.includes(
+            '/callback') || currentPath.includes('/error');
+        if (user) {
+          // User is authenticated
+          if (redirectPath) {
+            navigate(redirectPath);
+          } else if (!isAuthPage) {
+            if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+              navigate(currentPath);
+            } else {
+              navigate('/');
+            }
+          } else {
+            navigate('/');
+          }
+          // Store user information in Redux
+          dispatch(setUser(JSON.parse(JSON.stringify(user))));
+        } else {
+          // User is not authenticated
+          if (!isAuthPage) {
+            navigate(
+              currentPath.includes('/signup')
+               ? `/signup?redirect=${currentPath}`
+               : currentPath.includes('/login')
+               ? `/login?redirect=${currentPath}`
+               : '/login');
+          } else if (redirectPath) {
+            if (
+              !['error', 'signup', 'login', 'callback'].some((path) => currentPath.includes(path)))
+              navigate(`/login?redirect=${redirectPath}`);
+            else {
+              navigate(currentPath);
+            }
+          } else if (isAuthPage) {
+            navigate(currentPath);
+          } else {
+            navigate('/login');
+          }
+          dispatch(clearUser());
+        }
+      },
+      onError: function(error) {
+        console.error("Authentication failed:", error);
+        toast.error("Authentication failed: " + (error.message || "Unknown error"));
+      }
+    });
+  }, [dispatch, navigate]);
+
+  // Authentication methods to share via context
+  const authMethods = {
+    isInitialized,
+    logout: async () => {
+      try {
+        const { ApperUI } = window.ApperSDK;
+        await ApperUI.logout();
+        dispatch(clearUser());
+        navigate('/login');
+      } catch (error) {
+        console.error("Logout failed:", error);
+        toast.error("Logout failed: " + (error.message || "Unknown error"));
+      }
+    }
+  };
+
   return (
-    <AuthProvider>
+    <AuthContext.Provider value={authMethods}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
         
@@ -321,6 +419,8 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/interview-tips" element={<InterviewTips />} />
+            <Route path="/callback" element={<Callback />} />
+            <Route path="/error" element={<ErrorPage />} />
             <Route path="/job/:id" element={<JobDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={
@@ -390,7 +490,7 @@ function App() {
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false}
           newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
       </div>
-    </AuthProvider>
+    </AuthContext.Provider>
   );
 }
 
