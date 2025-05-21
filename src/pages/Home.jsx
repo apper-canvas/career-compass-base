@@ -221,7 +221,6 @@ const JobCard = ({ job, onSave, onApply, saved }) => {
         <Link to={`/job/${job.id}`} className="text-primary hover:text-primary-dark transition-colors text-sm font-medium">
           View Details →
         </Link>
-        </button>
       </div>
     </motion.div>
   );
