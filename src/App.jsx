@@ -19,6 +19,7 @@ const Register = lazy(() => import('./pages/auth/Register'));
 // Navigation component
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -56,12 +57,33 @@ const Navigation = () => {
   
   // Handle logout
   const handleLogout = () => {
+    setIsProfileOpen(false);
     logout();
     navigate('/');
   };
   
-  // Profile button click
-  const handleProfileClick = () => currentUser ? navigate('/profile') : navigate('/login');
+  // Toggle profile dropdown
+  const toggleProfileDropdown = (e) => {
+    e.stopPropagation();
+    setIsProfileOpen(!isProfileOpen);
+  };
+  
+  // Handle navigation to profile
+  const handleProfileNavigation = (e) => {
+    e.stopPropagation();
+    setIsProfileOpen(false);
+    navigate('/profile');
+  };
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const closeDropdown = () => {
+      setIsProfileOpen(false);
+    };
+    
+    document.addEventListener('click', closeDropdown);
+    return () => document.removeEventListener('click', closeDropdown);
+  }, []);
 
   return (
     <nav className="bg-white dark:bg-surface-800 shadow-sm sticky top-0 z-50">
@@ -107,13 +129,13 @@ const Navigation = () => {
             </Link>
             
             {currentUser ? (
-              <div className="relative group">
-                <button className="flex items-center gap-2 font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
+              <div className="relative">
+                <button onClick={toggleProfileDropdown} className="flex items-center gap-2 font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
                   <UserIcon className="h-4 w-4" />
                   {currentUser.firstName}
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-surface-800 rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block">
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">My Profile</Link>
+                <div className={`absolute right-0 mt-2 w-48 bg-white dark:bg-surface-800 rounded-md shadow-lg overflow-hidden z-20 ${isProfileOpen ? 'block' : 'hidden'}`}>
+                  <a onClick={handleProfileNavigation} className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 cursor-pointer">My Profile</a>
                   <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Log Out</button>
                 </div>
               </div>
