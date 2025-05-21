@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
@@ -381,4 +381,3 @@ const MainFeature = () => {
 };
 
 export default MainFeature;
-                            {React.createElement(getIcon(getStatusIcon(application.status)), { className: "h-5 w-5" })}
