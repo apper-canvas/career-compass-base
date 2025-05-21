@@ -6,6 +6,7 @@ import { getIcon } from './utils/iconUtils';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import InterviewTips from './pages/InterviewTips';
+import MyApplications from './pages/MyApplications';
 import UserProfile from './pages/UserProfile';
 
 // Navigation component
@@ -187,6 +188,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/interview-tips" element={<InterviewTips />} />
+          <Route path="/my-applications" element={<MyApplications />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
