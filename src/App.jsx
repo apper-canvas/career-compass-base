@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Routes, Route, Link, useNavigate, } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { getIcon } from './utils/iconUtils';
@@ -12,6 +12,9 @@ import MyApplications from './pages/MyApplications';
 import Login from './pages/auth/Login';
 import JobDetail from './pages/JobDetail';
 import UserProfile from './pages/UserProfile';
+
+// Lazy load the Register component
+const Register = lazy(() => import('./pages/auth/Register'));
 
 // Navigation component
 const Navigation = () => {
@@ -240,7 +243,9 @@ function App() {
             <Route path="/job/:id" element={<JobDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={
-              <React.lazy(() => import('./pages/auth/Register'))
+              <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                <Register />
+              </Suspense>
             } />
             
             
