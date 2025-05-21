@@ -308,7 +308,10 @@ const ApplicationTracker = () => {
                     <td className="px-4 py-3">{app.company}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[app.status].color}`}>
-                        {getIcon(statusConfig[app.status].icon)({ className: "h-3.5 w-3.5 mr-1" })}
+                        {(() => {
+                          const StatusIcon = getIcon(statusConfig[app.status].icon);
+                          return <StatusIcon className="h-3.5 w-3.5 mr-1" />;
+                        })()}
                         {app.status}
                       </span>
                     </td>
