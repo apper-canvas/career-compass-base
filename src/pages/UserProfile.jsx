@@ -1349,7 +1349,7 @@ const PersonalInfo = ({ user }) => {
                 <div>
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium mb-1">
-                  </label>
+                    Professional Title
                   <input
                     type="text"
                     id="title"
@@ -1405,8 +1405,8 @@ const PersonalInfo = ({ user }) => {
                   />
                 </div>
               </div>
-            </form>
-                  type="button"
+              <div className="flex justify-end space-x-3 mt-6">
+                <button type="button"
                   onClick={() => setEditSection(null)}
                   className="btn bg-surface-200 text-surface-800 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
                 >
