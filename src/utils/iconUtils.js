@@ -1,6 +1,13 @@
 import * as LucideIcons from 'lucide-react';
-import { BellRing, Bell, AlertTriangle, User, Settings } from 'lucide-react';
-export const getIcon = (iconName) => {
+  Menu, 
+  X, 
+  Sun, 
+  Moon, 
+  Briefcase, 
+  User, 
+  Search, 
+  Mail,
+  Lock,
   // Handle null/undefined case
   if (!iconName) {
     console.warn('No icon name provided, using Smile as fallback');
@@ -11,6 +18,8 @@ export const getIcon = (iconName) => {
   if (LucideIcons[iconName] && typeof LucideIcons[iconName] === 'function') {
     return LucideIcons[iconName];
   }
+  Eye,
+  EyeOff,
   
   // Step 2: Handle various transformations from kebab-case to PascalCase
   let componentName = '';
@@ -27,6 +36,8 @@ export const getIcon = (iconName) => {
         return part.charAt(0).toUpperCase() + part.slice(1);
       })
       .join('');
+    mail: Mail,
+    lock: Lock,
   } else {
     // For single word icons, just capitalize first letter
     componentName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
@@ -39,6 +50,8 @@ export const getIcon = (iconName) => {
   
   // Step 4: Advanced retry - try various transformations if needed
   // Try removing spaces and underscores (user_circle → UserCircle)
+    eye: Eye,
+    eyeOff: EyeOff,
   const noSpaces = componentName.replace(/[\s_]/g, '');
   if (LucideIcons[noSpaces] && typeof LucideIcons[noSpaces] === 'function') {
     return LucideIcons[noSpaces];
