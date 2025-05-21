@@ -6,8 +6,6 @@ import { getUserApplications, getJobApplications, applyForJob, updateApplication
 import { getCandidateInterviews, getEmployerInterviews, scheduleInterview } from '../services/interviewService';
 import { getAllDeadlineNotifications, createDeadlineNotification } from '../services/deadlineNotificationService';
 
-
-import { useAuth } from './AuthContext';
 import { 
   sendJobApplicationConfirmation, 
   sendApplicationStatusUpdate, 
@@ -30,7 +28,6 @@ export const JobProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [interviews, setInterviews] = useState([]);
   const { user: currentUser } = useSelector((state) => state.user);
-  const { currentUser: authUser, loading: authLoading } = useAuth();
   // Initial data loading
   // Initialize jobs from localStorage on mount
   useEffect(() => {
