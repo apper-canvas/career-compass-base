@@ -223,8 +223,10 @@ const Navigation = () => {
                     Post a Job <PlusIcon className="inline h-4 w-4 ml-1" />
                   </a>
                 </>
-              ) || currentUser.role === 'candidate' && (
-                <a 
+              )
+            )}
+            {currentUser && currentUser.role === 'candidate' && (
+              <a 
                 onClick={() => { setIsOpen(false); navigate('/my-applications'); }}
                 className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
               >
