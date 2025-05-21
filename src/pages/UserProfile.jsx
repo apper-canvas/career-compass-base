@@ -1346,8 +1346,6 @@ const PersonalInfo = ({ user }) => {
                     required
                   />
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                </div>
-                </div>
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
@@ -1406,7 +1404,9 @@ const PersonalInfo = ({ user }) => {
                     placeholder="e.g., San Francisco, CA"
                   />
                 </div>
-              </div>
+                </div>
+              </form>
+              
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
