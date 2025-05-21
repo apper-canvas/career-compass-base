@@ -1,13 +1,13 @@
 import * as LucideIcons from 'lucide-react';
-  Menu, 
-  X, 
-  Sun, 
-  Moon, 
-  Briefcase, 
-  User, 
-  Search, 
-  Mail,
-  Lock,
+
+/**
+ * Retrieves a Lucide icon component by name, supporting multiple naming conventions.
+ * Handles various formats: PascalCase, camelCase, kebab-case
+ * 
+ * @param {string} iconName - Name of the icon to retrieve
+ * @returns {React.ComponentType} The requested icon component or a fallback
+ */
+export const getIcon = (iconName) => {
   // Handle null/undefined case
   if (!iconName) {
     console.warn('No icon name provided, using Smile as fallback');
@@ -18,8 +18,6 @@ import * as LucideIcons from 'lucide-react';
   if (LucideIcons[iconName] && typeof LucideIcons[iconName] === 'function') {
     return LucideIcons[iconName];
   }
-  Eye,
-  EyeOff,
   
   // Step 2: Handle various transformations from kebab-case to PascalCase
   let componentName = '';
@@ -36,8 +34,6 @@ import * as LucideIcons from 'lucide-react';
         return part.charAt(0).toUpperCase() + part.slice(1);
       })
       .join('');
-    mail: Mail,
-    lock: Lock,
   } else {
     // For single word icons, just capitalize first letter
     componentName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
@@ -50,8 +46,6 @@ import * as LucideIcons from 'lucide-react';
   
   // Step 4: Advanced retry - try various transformations if needed
   // Try removing spaces and underscores (user_circle → UserCircle)
-    eye: Eye,
-    eyeOff: EyeOff,
   const noSpaces = componentName.replace(/[\s_]/g, '');
   if (LucideIcons[noSpaces] && typeof LucideIcons[noSpaces] === 'function') {
     return LucideIcons[noSpaces];
@@ -68,3 +62,5 @@ import * as LucideIcons from 'lucide-react';
   console.warn(`Icon "${iconName}" not found in Lucide (tried "${componentName}"), using Smile instead`);
   return LucideIcons.Smile;
 };
+
+export default getIcon;
