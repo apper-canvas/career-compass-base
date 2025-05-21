@@ -1360,6 +1360,7 @@ const PersonalInfo = ({ user }) => {
                     className="input-field"
                     placeholder="e.g., Software Developer"
                   />
+                </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium mb-1">
                     Email Address <span className="text-red-500">*</span>
@@ -1369,7 +1370,6 @@ const PersonalInfo = ({ user }) => {
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleInputChange}
                     className="input-field"
                     required
                   />
@@ -1404,6 +1404,7 @@ const PersonalInfo = ({ user }) => {
                   />
                 </div>
               </div>
+              
               <div className="flex justify-end space-x-3 mt-6">
                 <button 
                   type="button"
