@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Register a new user
-  const register = async (email, password, firstName, lastName) => {
+  const register = async (email, password, firstName, lastName, role = 'candidate', companyName = null) => {
     try {
       // In a real app, this would call an API endpoint
       // For demo purposes, we'll simulate a successful registration
@@ -44,7 +44,9 @@ export const AuthProvider = ({ children }) => {
         email,
         firstName,
         lastName,
-        role: 'candidate',
+        role,
+        companyName,
+        companySize: role === 'employer' ? 'small' : null,
         createdAt: new Date().toISOString()
       };
       
@@ -56,7 +58,11 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
       
-      toast.success('Account created successfully!');
+      if (role === 'employer') {
+        toast.success('Employer account created successfully!');
+      } else {
+        toast.success('Account created successfully!');
+      }
       return newUser;
     } catch (error) {
       toast.error(error.message || 'Failed to create account');
@@ -97,6 +103,45 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Convert user to employer (for testing purposes)
+  const convertToEmployer = async (companyName, companySize) => {
+    try {
+      if (!currentUser) {
+        throw new Error('You must be logged in to perform this action');
+      }
+
+      setLoading(true);
+      
+      // Update user in "database"
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex(u => u.email === currentUser.email);
+      
+      if (userIndex === -1) {
+        throw new Error('User not found');
+      }
+      
+      // Update user role and company info
+      const updatedUser = { ...users[userIndex], role: 'employer', companyName, companySize };
+      users[userIndex] = updatedUser;
+      
+      // Save to localStorage
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Update current user
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      setCurrentUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      
+      toast.success('Account converted to employer successfully!');
+      return userWithoutPassword;
+    } catch (error) {
+      toast.error(error.message || 'Failed to log in');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Logout the current user
   const logout = () => {
     setCurrentUser(null);
@@ -108,6 +153,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     loading,
     register,
+    convertToEmployer,
     login,
     logout
   };

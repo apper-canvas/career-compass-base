@@ -1,212 +1,300 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { getIcon } from '../../utils/iconUtils';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Register = () => {
+  const [searchParams] = useSearchParams();
+  const defaultRole = searchParams.get('role') === 'employer' ? 'employer' : 'candidate';
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: defaultRole,
+    companyName: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
+  
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const { register } = useAuth();
   const navigate = useNavigate();
-  
+
   // Icons
-  const EyeIcon = getIcon('eye');
-  const EyeOffIcon = getIcon('eyeOff');
-  const MailIcon = getIcon('mail');
-  const LockIcon = getIcon('lock');
   const UserIcon = getIcon('user');
-  
-  // Handle input changes
+  const EnvelopeIcon = getIcon('mail');
+  const LockIcon = getIcon('lock');
+  const BriefcaseIcon = getIcon('briefcase');
+  const BuildingIcon = getIcon('building');
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
+    // Clear error when typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
-  
-  // Validate form inputs
+
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    // Validate first name
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
     
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    // Validate last name
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
     
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email address is invalid';
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email address is invalid';
+    }
     
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
     
-    if (formData.password !== formData.confirmPassword) {
+    // Validate confirm password
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    // Validate company name if employer
+    if (formData.role === 'employer' && !formData.companyName.trim()) {
+      newErrors.companyName = 'Company name is required';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
     
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
       await register(
         formData.email,
         formData.password,
         formData.firstName,
-        formData.lastName
+        formData.lastName,
+        formData.role,
+        formData.companyName
       );
       
-      navigate('/');
+      // Redirect based on role
+      if (formData.role === 'employer') {
+        navigate('/employer/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
-      // Error is handled in the auth context
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
-    <div className="max-w-md mx-auto my-12 px-4">
-      <div className="card">
-        <h2 className="text-2xl font-bold text-center mb-6">Create an Account</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-                First Name
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500">
-                  <UserIcon className="h-5 w-5" />
-                </span>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  className={`input-field pl-10 ${errors.firstName ? 'ring-2 ring-red-500' : ''}`}
-                  placeholder="John"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                />
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-md mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="card auth-form-shadow"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Create your account</h2>
+            <p className="text-surface-600 dark:text-surface-400">
+              Join CareerCompass to find your dream job
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium mb-1">First Name</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500 dark:text-surface-400">
+                    <UserIcon className="h-5 w-5" />
+                  </span>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className={`pl-10 input-field ${errors.firstName ? 'border-red-500 dark:border-red-500' : ''}`}
+                    placeholder="John"
+                  />
+                </div>
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
               </div>
-              {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium mb-1">Last Name</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`input-field ${errors.lastName ? 'border-red-500 dark:border-red-500' : ''}`}
+                  placeholder="Doe"
+                />
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+              </div>
             </div>
             
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-                Last Name
-              </label>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500">
-                  <UserIcon className="h-5 w-5" />
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500 dark:text-surface-400">
+                  <EnvelopeIcon className="h-5 w-5" />
                 </span>
                 <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  className={`input-field pl-10 ${errors.lastName ? 'ring-2 ring-red-500' : ''}`}
-                  placeholder="Doe"
-                  value={formData.lastName}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
+                  className={`pl-10 input-field ${errors.email ? 'border-red-500 dark:border-red-500' : ''}`}
+                  placeholder="john.doe@example.com"
                 />
               </div>
-              {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500">
-                <MailIcon className="h-5 w-5" />
-              </span>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                className={`input-field pl-10 ${errors.email ? 'ring-2 ring-red-500' : ''}`}
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-              />
+            
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500 dark:text-surface-400">
+                  <LockIcon className="h-5 w-5" />
+                </span>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`pl-10 input-field ${errors.password ? 'border-red-500 dark:border-red-500' : ''}`}
+                  placeholder="••••••••"
+                />
+              </div>
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-          </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500">
-                <LockIcon className="h-5 w-5" />
-              </span>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                className={`input-field pl-10 ${errors.password ? 'ring-2 ring-red-500' : ''}`}
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-surface-500"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-              </button>
+            
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500 dark:text-surface-400">
+                  <LockIcon className="h-5 w-5" />
+                </span>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`pl-10 input-field ${errors.confirmPassword ? 'border-red-500 dark:border-red-500' : ''}`}
+                  placeholder="••••••••"
+                />
+              </div>
+              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-          </div>
-          
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500">
-                <LockIcon className="h-5 w-5" />
-              </span>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
-                className={`input-field pl-10 ${errors.confirmPassword ? 'ring-2 ring-red-500' : ''}`}
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Account Type</label>
+              <div className="grid grid-cols-2 gap-4 mt-1">
+                <label className={`flex items-center p-3 border ${formData.role === 'candidate' ? 'border-primary bg-primary bg-opacity-10' : 'border-surface-200 dark:border-surface-700'} rounded-lg cursor-pointer transition-colors`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="candidate"
+                    checked={formData.role === 'candidate'}
+                    onChange={handleChange}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center">
+                    <UserIcon className={`h-5 w-5 mr-2 ${formData.role === 'candidate' ? 'text-primary' : 'text-surface-500 dark:text-surface-400'}`} />
+                    <div>
+                      <span className="font-medium block">Job Seeker</span>
+                      <span className="text-xs text-surface-500 dark:text-surface-400">Find and apply to jobs</span>
+                    </div>
+                  </div>
+                </label>
+                <label className={`flex items-center p-3 border ${formData.role === 'employer' ? 'border-primary bg-primary bg-opacity-10' : 'border-surface-200 dark:border-surface-700'} rounded-lg cursor-pointer transition-colors`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="employer"
+                    checked={formData.role === 'employer'}
+                    onChange={handleChange}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center">
+                    <BriefcaseIcon className={`h-5 w-5 mr-2 ${formData.role === 'employer' ? 'text-primary' : 'text-surface-500 dark:text-surface-400'}`} />
+                    <div>
+                      <span className="font-medium block">Employer</span>
+                      <span className="text-xs text-surface-500 dark:text-surface-400">Post jobs & hire talent</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
-            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
-          </div>
-          
-          <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-        
-        <p className="text-center mt-4 text-surface-600 dark:text-surface-400">
-          Already have an account? <Link to="/login" className="text-primary hover:underline">Log In</Link>
-        </p>
+            
+            {formData.role === 'employer' && (
+              <div>
+                <label htmlFor="companyName" className="block text-sm font-medium mb-1">Company Name</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-surface-500 dark:text-surface-400">
+                    <BuildingIcon className="h-5 w-5" />
+                  </span>
+                  <input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    className={`pl-10 input-field ${errors.companyName ? 'border-red-500 dark:border-red-500' : ''}`}
+                    placeholder="Your Company Inc."
+                  />
+                </div>
+                {errors.companyName && <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>}
+              </div>
+            )}
+            
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="btn btn-primary w-full"
+            >
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+            </button>
+            
+            <p className="text-center text-sm text-surface-600 dark:text-surface-400 mt-4">
+              Already have an account? <Link to="/login" className="text-primary hover:text-primary-dark font-medium">Sign in</Link>
+            </p>
+          </form>
+        </motion.div>
       </div>
     </div>
   );

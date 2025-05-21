@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { getIcon } from './utils/iconUtils';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import EmployerRoute from './components/EmployerRoute';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import InterviewTips from './pages/InterviewTips';
@@ -15,6 +16,11 @@ import UserProfile from './pages/UserProfile';
 
 // Lazy load the Register component
 const Register = lazy(() => import('./pages/auth/Register'));
+// Lazy load employer pages
+const EmployerDashboard = lazy(() => import('./pages/employer/Dashboard'));
+const PostJob = lazy(() => import('./pages/employer/PostJob'));
+const EditJob = lazy(() => import('./pages/employer/EditJob'));
+const ManageJobs = lazy(() => import('./pages/employer/ManageJobs'));
 
 // Navigation component
 const Navigation = () => {
@@ -54,6 +60,7 @@ const Navigation = () => {
   const MoonIcon = getIcon('moon');
   const BriefcaseIcon = getIcon('briefcase');
   const UserIcon = getIcon('user');
+  const PlusIcon = getIcon('plus');
   
   // Handle logout
   const handleLogout = () => {
@@ -118,10 +125,21 @@ const Navigation = () => {
               Find Jobs
             </Link>
             
+            {currentUser && currentUser.role === 'employer' && (
+              <>
+                <Link to="/employer/dashboard" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
+                  Dashboard
+                </Link>
+                <Link to="/employer/post-job" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
+                  Post a Job
+                </Link>
+              </>
+            )}
+            
             {currentUser && (
-              <Link to="/my-applications" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
-              My Applications
-              </Link>
+              currentUser.role === 'candidate' && (
+                <Link to="/my-applications" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">My Applications</Link>
+              )
             )}
             
             <Link to="/interview-tips" className="font-medium text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light">
@@ -136,7 +154,17 @@ const Navigation = () => {
                 </button>
                 <div className={`absolute right-0 mt-2 w-48 bg-white dark:bg-surface-800 rounded-md shadow-lg overflow-hidden z-20 ${isProfileOpen ? 'block' : 'hidden'}`}>
                   <a onClick={handleProfileNavigation} className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 cursor-pointer">My Profile</a>
-                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Log Out</button>
+                  {currentUser.role === 'employer' && (
+                    <>
+                      <Link to="/employer/dashboard" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Dashboard</Link>
+                      <Link to="/employer/manage-jobs" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Manage Jobs</Link>
+                      <Link to="/employer/post-job" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">Post a Job</Link>
+                    </>
+                  )}
+                  {currentUser.role === 'candidate' && (
+                    <Link to="/my-applications" className="block px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700">My Applications</Link>
+                  )}
+                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 border-t border-surface-200 dark:border-surface-700 mt-1 pt-1">Log Out</button>
                 </div>
               </div>
             ) : (
@@ -170,7 +198,29 @@ const Navigation = () => {
             </a>
             
             {currentUser && (
-              <a 
+              currentUser.role === 'employer' && (
+                <>
+                  <a 
+                    onClick={() => { setIsOpen(false); navigate('/employer/dashboard'); }}
+                    className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+                  >
+                    Dashboard
+                  </a>
+                  <a 
+                    onClick={() => { setIsOpen(false); navigate('/employer/manage-jobs'); }}
+                    className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+                  >
+                    Manage Jobs
+                  </a>
+                  <a 
+                    onClick={() => { setIsOpen(false); navigate('/employer/post-job'); }}
+                    className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+                  >
+                    Post a Job <PlusIcon className="inline h-4 w-4 ml-1" />
+                  </a>
+                </>
+              ) || currentUser.role === 'candidate' && (
+                <a 
                 onClick={() => { setIsOpen(false); navigate('/my-applications'); }}
                 className="block px-3 py-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
               >
@@ -230,6 +280,9 @@ const Footer = () => {
               <li><a href="/" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Find Jobs</a></li>
               <li><a href="/my-applications" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">My Applications</a></li>
               <li><a href="/interview-tips" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Interview Tips</a></li>
+              <li><a href="/employer/dashboard" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">For Employers</a></li>
+              <li><a href="/employer/post-job" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Post a Job</a></li>
+              <li><a href="/register?role=employer" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Register as Employer</a></li>
               <li><a href="/login" className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary-light">Sign In</a></li>
             </ul>
           </div>
@@ -281,6 +334,36 @@ function App() {
               <ProtectedRoute>
                 <MyApplications />
               </ProtectedRoute>
+            } />
+            
+            {/* Employer Routes */}
+            <Route path="/employer/dashboard" element={
+              <EmployerRoute>
+                <Suspense fallback={<div className="flex justify-center items-center h-64">Loading dashboard...</div>}>
+                  <EmployerDashboard />
+                </Suspense>
+              </EmployerRoute>
+            } />
+            <Route path="/employer/post-job" element={
+              <EmployerRoute>
+                <Suspense fallback={<div className="flex justify-center items-center h-64">Loading form...</div>}>
+                  <PostJob />
+                </Suspense>
+              </EmployerRoute>
+            } />
+            <Route path="/employer/edit-job/:id" element={
+              <EmployerRoute>
+                <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                  <EditJob />
+                </Suspense>
+              </EmployerRoute>
+            } />
+            <Route path="/employer/manage-jobs" element={
+              <EmployerRoute>
+                <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                  <ManageJobs />
+                </Suspense>
+              </EmployerRoute>
             } />
             
             <Route path="*" element={<NotFound />} />
