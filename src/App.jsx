@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -242,6 +242,7 @@ function App() {
             <Route path="/register" element={
               <React.lazy(() => import('./pages/auth/Register'))
             } />
+            
             
             {/* Protected routes */}
             <Route path="/profile" element={
