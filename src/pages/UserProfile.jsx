@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion'; 
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 
@@ -832,7 +832,7 @@ const Resume = () => {
                       ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
                       : 'bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400'
                   }`}>
-                    {getIcon(getFileTypeIcon(resume.fileType))({ className: "h-5 w-5" })}
+                    {React.createElement(getIcon(getFileTypeIcon(resume.fileType)), { className: "h-5 w-5" })}
                   </div>
                   <div>
                     <div className="flex items-center">
@@ -1017,7 +1017,6 @@ const UserProfile = () => {
             {activeTab === "resume" && <Resume />}
             
             {/* Settings Tab */}
-            )}
             
             {activeTab === "settings" && (
               <div>
