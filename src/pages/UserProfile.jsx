@@ -1348,9 +1348,10 @@ const PersonalInfo = ({ user }) => {
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 <div>
                 <div>
+                  <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
-                  <input
                   </label>
+                  <input
                     type="text"
                     id="title"
                     name="title"
