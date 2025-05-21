@@ -26,21 +26,22 @@ export const useJob = () => {
 export const JobProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [deadlineNotifications, setDeadlineNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [interviews, setInterviews] = useState([]);
   const { user: currentUser } = useSelector((state) => state.user);
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser: authUser, loading: authLoading } = useAuth();
   // Initial data loading
   // Initialize jobs from localStorage on mount
+  useEffect(() => {
     fetchJobs();
     setLoading(false);
   }, []);
   // Load user applications when user changes
-  // Save deadline notifications to localStorage whenever they change
+  useEffect(() => {
     if (currentUser) {
       fetchUserData();
       localStorage.setItem('deadlineNotifications', JSON.stringify(deadlineNotifications));
-  }, [currentUser]);
   }, [deadlineNotifications, loading]);
   // Fetch all jobs from the database
   const fetchJobs = async () => {
@@ -52,8 +53,9 @@ export const JobProvider = ({ children }) => {
       console.error("Error fetching jobs:", error);
       toast.error("Could not load jobs");
     } finally {
+      const intervalId = setInterval(checkDeadlines, 3600000); // Check deadlines every hour
       setLoading(false);
-      return () => clearInterval(intervalId);
+      return () => clearInterval(intervalId); 
   };
   }, [currentUser, applications, deadlineNotifications, loading, authLoading]);
   // Fetch user-specific data
@@ -91,8 +93,9 @@ export const JobProvider = ({ children }) => {
       toast.error("Could not load your data");
     } finally {
       setLoading(false);
+     }
     }
-    return jobs.filter(job => job.status !== 'deleted');
+    
   };
   // Get all active jobs
   const getAllJobsService = async (options = {}) => {
@@ -107,8 +110,8 @@ export const JobProvider = ({ children }) => {
       return [];
     } finally {
       setLoading(false);
+     }
     }
-    return jobs.filter(job => job.employerId === employerId && job.status !== 'deleted');
   };
   // Get jobs by employer
   const getJobsByEmployerService = async (employerId) => {
@@ -122,31 +125,34 @@ export const JobProvider = ({ children }) => {
       return [];
     } finally {
       setLoading(false);
+     }
     }
-    return jobs.find(job => job.id === jobId && job.status !== 'deleted');
   };
   // Get job by ID
   const getJobByIdService = async (jobId) => {
-  const createJob = async (jobData) => {
-
+    try {
+      setLoading(true);
       const job = await getJobById(jobId);
       return job;
-      return newJob;
+    } catch (error) {
       console.error("Error fetching job:", error);
       toast.error("Could not load job details");
       return null;
-      throw error;
     } finally {
       setLoading(false);
     }
   };
   // Create job
   const createJobService = async (jobData) => {
-  const updateJob = async (jobId, jobData) => {
     try {
+      if (!currentUser || currentUser.role !== 'employer') {
         throw new Error('Only employers can post jobs');
-        throw new Error('Only employers can update jobs');
-
+      }
+      
+      if (currentUser.role !== 'employer') {
+        throw new Error('Only employers can post jobs');
+      }
+      
       setLoading(true);
       // Prepare job data with employer info
       const completeJobData = {
@@ -154,8 +160,7 @@ export const JobProvider = ({ children }) => {
         employerId: currentUser.Id,
         employerName: currentUser.companyName || `${currentUser.firstName} ${currentUser.lastName}'s Company`
       };
-      }
-      // Create job in database
+            // Create job in database
       const newJob = await createJob(completeJobData);
       
       // Update local state
@@ -551,7 +556,7 @@ export const JobProvider = ({ children }) => {
     } catch (error) {
       console.error("Error checking deadlines:", error);
     }
-        lastUpdated: new Date().toISOString() 
+   
   };
 
   // Context value
