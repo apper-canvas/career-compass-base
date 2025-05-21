@@ -1422,7 +1422,6 @@ const PersonalInfo = ({ user }) => {
                   className="btn btn-primary"
                 >
                   Save Changes
-                </div>
                 </button>
               </div>
             </form>
