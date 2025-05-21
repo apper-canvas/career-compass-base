@@ -39,10 +39,12 @@ export const JobProvider = ({ children }) => {
   }, []);
   // Load user applications when user changes
   useEffect(() => {
-    if (currentUser) {
-      fetchUserData();
-      localStorage.setItem('deadlineNotifications', JSON.stringify(deadlineNotifications));
+      if (currentUser) {
+        fetchUserData();
+        localStorage.setItem('deadlineNotifications', JSON.stringify(deadlineNotifications));
+      }
   }, [deadlineNotifications, loading]);
+  
   // Fetch all jobs from the database
   const fetchJobs = async () => {
     try {
@@ -56,8 +58,8 @@ export const JobProvider = ({ children }) => {
       const intervalId = setInterval(checkDeadlines, 3600000); // Check deadlines every hour
       setLoading(false);
       return () => clearInterval(intervalId); 
+    }
   };
-  }, [currentUser, applications, deadlineNotifications, loading, authLoading]);
   // Fetch user-specific data
   const fetchUserData = async () => {
     if (!currentUser) return;
@@ -95,9 +97,7 @@ export const JobProvider = ({ children }) => {
       setLoading(false);
      }
     }
-    
-  };
-  // Get all active jobs
+
   const getAllJobsService = async (options = {}) => {
     try {
       setLoading(true);
@@ -110,7 +110,6 @@ export const JobProvider = ({ children }) => {
       return [];
     } finally {
       setLoading(false);
-     }
     }
   };
   // Get jobs by employer
@@ -125,7 +124,6 @@ export const JobProvider = ({ children }) => {
       return [];
     } finally {
       setLoading(false);
-     }
     }
   };
   // Get job by ID
@@ -563,7 +561,6 @@ export const JobProvider = ({ children }) => {
   const value = {
     loading,
     applications,
-    loading,
     getAllJobs: getAllJobsService,
     getJobsByEmployer: getJobsByEmployerService,
     getJobById: getJobByIdService,
@@ -575,7 +572,6 @@ export const JobProvider = ({ children }) => {
     updateApplicationStatus: updateApplicationStatusService,
     scheduleInterview: scheduleInterviewService,
     checkDeadlines
-    
   };
 
   return <JobContext.Provider value={value}>{children}</JobContext.Provider>;
