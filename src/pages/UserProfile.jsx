@@ -1348,7 +1348,6 @@ const PersonalInfo = ({ user }) => {
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 <div>
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium mb-1">
                     Professional Title
                   </label>
                   <input
@@ -1420,7 +1419,6 @@ const PersonalInfo = ({ user }) => {
                   Save Changes
                 </button>
               </div>
-            </div>
             </form>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
