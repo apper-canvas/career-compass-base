@@ -1891,8 +1891,6 @@ const PersonalInfo = ({ user }) => {
     </div>
   );
 };
-              </div>
-            )}
             
             {activeTab === "resume" && <Resume />}
             
