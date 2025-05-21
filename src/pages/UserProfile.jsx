@@ -1017,8 +1017,6 @@ const UserProfile = () => {
             {activeTab === "resume" && <Resume />}
             
             {/* Settings Tab */}
-                </div>
-              </div>
             )}
             
             {activeTab === "settings" && (
