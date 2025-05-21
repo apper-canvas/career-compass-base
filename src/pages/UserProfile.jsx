@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
@@ -11,7 +11,8 @@ const mockUser = {
   phone: "(555) 123-4567",
   location: "San Francisco, CA",
   avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  resume: "resume-jane-smith.pdf",
+  hasDefaultResume: true,
+  defaultResumeId: 2,
   skills: ["React", "JavaScript", "TypeScript", "UI/UX Design", "Node.js"],
   preferences: {
     jobTypes: ["Full-time", "Remote"],
@@ -49,6 +50,40 @@ const mockJobAlerts = [
     frequency: "weekly",
     active: true,
     createdAt: "2023-05-22T14:15:00Z"
+  }
+];
+
+// Mock data for resumes
+const mockResumes = [
+  {
+    id: 1,
+    name: "Software Developer Resume",
+    fileName: "jane_smith_software_developer.pdf",
+    fileSize: 1240000,
+    fileType: "application/pdf",
+    uploadDate: "2023-03-10T15:30:00Z",
+    isDefault: false,
+    version: 1
+  },
+  {
+    id: 2,
+    name: "UX Designer Resume",
+    fileName: "jane_smith_ux_designer.pdf",
+    fileSize: 980000,
+    fileType: "application/pdf",
+    uploadDate: "2023-05-22T09:15:00Z",
+    isDefault: true,
+    version: 3
+  },
+  {
+    id: 3,
+    name: "Product Manager Resume",
+    fileName: "jane_smith_product_manager.docx",
+    fileSize: 1450000,
+    fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    uploadDate: "2023-08-05T12:45:00Z",
+    isDefault: false,
+    version: 1
   }
 ];
 
@@ -454,6 +489,419 @@ const JobAlerts = ({ alerts, setAlerts }) => {
   );
 };
 
+// Resume Component
+const Resume = () => {
+  const [resumes, setResumes] = useState(mockResumes);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewResume, setPreviewResume] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Icons
+  const FileTextIcon = getIcon('file-text');
+  const UploadIcon = getIcon('upload');
+  const DownloadIcon = getIcon('download');
+  const TrashIcon = getIcon('trash');
+  const StarIcon = getIcon('star');
+  const CheckIcon = getIcon('check');
+  const XIcon = getIcon('x');
+  const AlertTriangleIcon = getIcon('alert-triangle');
+  const FileIcon = getIcon('file');
+  const FileTypeIcon = getIcon('file');
+  const EyeIcon = getIcon('eye');
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Handle drag events
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleFileUpload(files[0]);
+    }
+  };
+
+  // Validate file
+  const validateFile = (file) => {
+    // Accepted file types
+    const acceptedTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    // Check file type
+    if (!acceptedTypes.includes(file.type)) {
+      toast.error('Please upload a PDF or Word document');
+      return false;
+    }
+    
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size should not exceed 5MB');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Handle file upload
+  const handleFileUpload = (file) => {
+    if (!validateFile(file)) return;
+    
+    // Simulate upload progress
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            addNewResume(file);
+            setIsUploading(false);
+          }, 500);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
+  };
+
+  // Add new resume to the list
+  const addNewResume = (file) => {
+    // Generate a new ID (would normally be handled by backend)
+    const newId = Math.max(...resumes.map(r => r.id)) + 1;
+    
+    // Check if this is the first resume (set as default)
+    const isDefault = resumes.length === 0;
+    
+    // Find if there are existing resumes with similar names to determine version
+    const baseName = file.name.split('.')[0]; // Name without extension
+    const existingVersions = resumes.filter(r => 
+      r.fileName.split('.')[0].toLowerCase() === baseName.toLowerCase()
+    );
+    const version = existingVersions.length + 1;
+    
+    // Create new resume object
+    const newResume = {
+      id: newId,
+      name: baseName,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      uploadDate: new Date().toISOString(),
+      isDefault: isDefault,
+      version: version
+    };
+    
+    // Add to resumes list
+    setResumes([newResume, ...resumes]);
+    toast.success(`Resume "${baseName}" uploaded successfully`);
+  };
+
+  // Set default resume
+  const setDefaultResume = (id) => {
+    const updatedResumes = resumes.map(resume => ({
+      ...resume,
+      isDefault: resume.id === id
+    }));
+    
+    setResumes(updatedResumes);
+    toast.success('Default resume set successfully');
+  };
+
+  // Delete resume
+  const deleteResume = (id) => {
+    // Check if it's the default resume
+    const isDefault = resumes.find(r => r.id === id)?.isDefault;
+    
+    if (isDefault) {
+      toast.error('Cannot delete default resume. Please set another resume as default first.');
+      return;
+    }
+    
+    // Confirm delete
+    if (window.confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+      const updatedResumes = resumes.filter(resume => resume.id !== id);
+      setResumes(updatedResumes);
+      
+      // Close preview if the deleted resume was being previewed
+      if (previewResume && previewResume.id === id) {
+        setPreviewResume(null);
+      }
+      
+      toast.success('Resume deleted successfully');
+    }
+  };
+
+  // Simulate resume download
+  const downloadResume = (resume) => {
+    toast.info(`Downloading ${resume.fileName}...`);
+    // In a real app, this would trigger an actual file download
+    setTimeout(() => {
+      toast.success(`${resume.fileName} downloaded successfully`);
+    }, 1500);
+  };
+
+  // Open file dialog
+  const handleFileButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Show resume preview
+  const showPreview = (resume) => {
+    setPreviewResume(resume);
+  };
+
+  // Get file icon based on file type
+  const getFileTypeIcon = (fileType) => {
+    if (fileType === 'application/pdf') {
+      return 'file-text';
+    } else if (fileType.includes('word')) {
+      return 'file-text';
+    } else {
+      return 'file';
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="text-2xl font-semibold">Resume Management</h2>
+        <button
+          onClick={handleFileButtonClick}
+          className="btn btn-primary flex items-center"
+        >
+          <UploadIcon className="h-4 w-4 mr-1" />
+          Upload Resume
+        </button>
+      </div>
+
+      <p className="text-surface-600 dark:text-surface-400 mb-6">
+        Upload and manage your resumes. You can set a default resume that will be used for job applications.
+      </p>
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0])}
+        className="hidden"
+        accept=".pdf,.doc,.docx"
+      />
+
+      {/* Drag and drop area */}
+      <div
+        className={`border-2 border-dashed rounded-xl p-8 mb-8 text-center transition-colors ${
+          isDragging 
+            ? 'border-primary bg-primary/5' 
+            : 'border-surface-300 dark:border-surface-700 hover:border-primary'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <UploadIcon className="h-10 w-10 mx-auto mb-3 text-surface-500 dark:text-surface-400" />
+        <h3 className="text-lg font-medium mb-2">Drag & Drop Your Resume</h3>
+        <p className="text-surface-600 dark:text-surface-400 mb-3">
+          Supports PDF, DOC, and DOCX files up to 5MB
+        </p>
+        <button 
+          onClick={handleFileButtonClick}
+          className="btn btn-outline mt-2"
+        >
+          Select File
+        </button>
+
+        {/* Upload progress */}
+        {isUploading && (
+          <div className="mt-4">
+            <div className="h-2 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-surface-600 dark:text-surface-400 mt-2">
+              Uploading... {uploadProgress}%
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Resume preview modal */}
+      {previewResume && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-surface-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-surface-200 dark:border-surface-700">
+              <h3 className="text-lg font-semibold">{previewResume.name}</h3>
+              <button 
+                onClick={() => setPreviewResume(null)}
+                className="p-1 rounded-full hover:bg-surface-200 dark:hover:bg-surface-700"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 h-[60vh] flex flex-col items-center justify-center bg-surface-100 dark:bg-surface-900">
+              {/* In a real app, this would be an actual document preview */}
+              <FileIcon className="h-16 w-16 text-surface-500 mb-4" />
+              <p className="text-lg font-medium mb-2">{previewResume.fileName}</p>
+              <p className="text-surface-600 dark:text-surface-400 mb-4">
+                {previewResume.fileType === 'application/pdf' ? 'PDF Document' : 'Word Document'} - {formatFileSize(previewResume.fileSize)}
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => downloadResume(previewResume)} 
+                  className="btn btn-primary flex items-center"
+                >
+                  <DownloadIcon className="h-4 w-4 mr-1" />
+                  Download
+                </button>
+                {!previewResume.isDefault && (
+                  <button 
+                    onClick={() => { setDefaultResume(previewResume.id); setPreviewResume({...previewResume, isDefault: true}); }}
+                    className="btn btn-outline flex items-center"
+                  >
+                    <StarIcon className="h-4 w-4 mr-1" />
+                    Set as Default
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resume list */}
+      {resumes.length === 0 ? (
+        <div className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-8 text-center">
+          <AlertTriangleIcon className="mx-auto h-12 w-12 text-surface-400 mb-3" />
+          <h3 className="text-lg font-semibold mb-2">No Resumes Uploaded</h3>
+          <p className="text-surface-600 dark:text-surface-400 mb-4">
+            You haven't uploaded any resumes yet. Upload a resume to apply for jobs more efficiently.
+          </p>
+          <button
+            onClick={handleFileButtonClick}
+            className="btn btn-primary"
+          >
+            Upload Your First Resume
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {resumes.map(resume => (
+            <motion.div
+              key={resume.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-5 border border-surface-200 dark:border-surface-700"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-start space-x-3">
+                  <div className={`p-2 rounded-full ${
+                    resume.isDefault 
+                      ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+                      : 'bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400'
+                  }`}>
+                    {getIcon(getFileTypeIcon(resume.fileType))({ className: "h-5 w-5" })}
+                  </div>
+                  <div>
+                    <div className="flex items-center">
+                      <h3 className="text-lg font-medium">{resume.name}</h3>
+                      {resume.version > 1 && (
+                        <span className="ml-2 text-xs bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 px-2 py-0.5 rounded-full">
+                          v{resume.version}
+                        </span>
+                      )}
+                      {resume.isDefault && (
+                        <span className="ml-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full flex items-center">
+                          <CheckIcon className="h-3 w-3 mr-0.5" />
+                          Default
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-surface-500 dark:text-surface-400">
+                      Uploaded on {formatDate(resume.uploadDate)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => showPreview(resume)}
+                    className="p-1.5 rounded-full bg-surface-200 text-surface-500 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-400 dark:hover:bg-surface-600"
+                    aria-label="Preview resume"
+                  >
+                    <EyeIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => downloadResume(resume)}
+                    className="p-1.5 rounded-full bg-surface-200 text-surface-500 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-400 dark:hover:bg-surface-600"
+                    aria-label="Download resume"
+                  >
+                    <DownloadIcon className="h-4 w-4" />
+                  </button>
+                  {!resume.isDefault && (
+                    <button
+                      onClick={() => setDefaultResume(resume.id)}
+                      className="p-1.5 rounded-full bg-surface-200 text-surface-500 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-400 dark:hover:bg-surface-600"
+                      aria-label="Set as default resume"
+                    >
+                      <StarIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                  {!resume.isDefault && (
+                    <button
+                      onClick={() => deleteResume(resume.id)}
+                      className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                      aria-label="Delete resume"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-3 text-sm text-surface-600 dark:text-surface-400 flex items-center">
+                <span className="mr-3">{resume.fileType === 'application/pdf' ? 'PDF Document' : 'Word Document'}</span>
+                <span>{formatFileSize(resume.fileSize)}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Main User Profile Component
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("job-alerts");
@@ -566,17 +1014,9 @@ const UserProfile = () => {
               </div>
             )}
             
-            {activeTab === "resume" && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-5">Resume</h2>
-                <p className="text-surface-600 dark:text-surface-400 mb-8">
-                  Upload and manage your resume and other documents.
-                </p>
-                <div className="space-y-6">
-                  {/* Resume upload would go here */}
-                  <p className="text-center text-surface-500 italic py-8">
-                    Resume management features coming soon...
-                  </p>
+            {activeTab === "resume" && <Resume />}
+            
+            {/* Settings Tab */}
                 </div>
               </div>
             )}
