@@ -1362,7 +1362,8 @@ const PersonalInfo = ({ user }) => {
                       onChange={handleInputChange}
                       className="input-field"
                       placeholder="e.g., Software Developer"
-                  />
+                    />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -1421,9 +1422,10 @@ const PersonalInfo = ({ user }) => {
                   className="btn btn-primary"
                 >
                   Save Changes
-                </button>
                 </div>
-              </form>
+                </button>
+              </div>
+            </form>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
               <div className="flex items-center">
