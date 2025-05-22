@@ -391,7 +391,7 @@ function App() {
         toast.error("Authentication failed: " + (error.message || "Unknown error"));
       }
     });
-  }, [dispatch, navigate]);
+  }, []);
 
   // Authentication methods to share via context
   const authMethods = {
